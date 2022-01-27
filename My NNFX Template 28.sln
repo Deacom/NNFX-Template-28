@@ -1,0 +1,42 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31624.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "My NNFX Template 28", "My NNFX Template 28\My NNFX Template 28.csproj", "{EF8589AB-7DA2-435F-849A-37C55D8FE88A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSL Channel", "..\..\Indicators\SSL Channel\SSL Channel\SSL Channel.csproj", "{7AF4B491-1558-4FC4-B55C-AD15417A896A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdxVma", "..\..\Indicators\AdxVma\AdxVma\AdxVma.csproj", "{5BAC46AF-A611-401F-8038-C018FEBA2882}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeLibrary", "..\Libraries\TradeLibrary\TradeLibrary.csproj", "{6FF9C6AF-4E32-430F-B66C-AEBDE84985FD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF8589AB-7DA2-435F-849A-37C55D8FE88A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF8589AB-7DA2-435F-849A-37C55D8FE88A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF8589AB-7DA2-435F-849A-37C55D8FE88A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF8589AB-7DA2-435F-849A-37C55D8FE88A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AF4B491-1558-4FC4-B55C-AD15417A896A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AF4B491-1558-4FC4-B55C-AD15417A896A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AF4B491-1558-4FC4-B55C-AD15417A896A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AF4B491-1558-4FC4-B55C-AD15417A896A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BAC46AF-A611-401F-8038-C018FEBA2882}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BAC46AF-A611-401F-8038-C018FEBA2882}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BAC46AF-A611-401F-8038-C018FEBA2882}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BAC46AF-A611-401F-8038-C018FEBA2882}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FF9C6AF-4E32-430F-B66C-AEBDE84985FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FF9C6AF-4E32-430F-B66C-AEBDE84985FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FF9C6AF-4E32-430F-B66C-AEBDE84985FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FF9C6AF-4E32-430F-B66C-AEBDE84985FD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DE366874-760A-4E8D-B6C5-B5BFE11BC983}
+	EndGlobalSection
+EndGlobal
