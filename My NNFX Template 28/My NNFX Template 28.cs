@@ -51,7 +51,6 @@ namespace cAlgo.Robots
         //indicator variables for the Template for multi symbols
         private readonly Dictionary<string, AverageTrueRange> AtrList = new Dictionary<string, AverageTrueRange>();
         private readonly Dictionary<string, TradeSymbolInfo> TradeSymbolInfoList = new Dictionary<string, TradeSymbolInfo>();
-        private readonly Dictionary<string, int> CurrencyRankingList = new Dictionary<string, int>();
         private readonly List<TradeSymbolInfo> SymbolsToTradeList = new List<TradeSymbolInfo>();
         private readonly Dictionary<string, int> CorrelationTable = new Dictionary<string, int>();
 
@@ -77,6 +76,12 @@ namespace cAlgo.Robots
             // gets 1 timeframe higher then you use the bot on if you want to use that
             switch (TimeFrame.Name)
             {
+                case ("Minute5"):
+                    higherTimeframe = TimeFrame.Minute15;
+                    break;
+                case ("Minute15"):
+                    higherTimeframe = TimeFrame.Hour;
+                    break;
                 case ("Hour"):
                     higherTimeframe = TimeFrame.Hour4;
                     break;
@@ -316,57 +321,22 @@ namespace cAlgo.Robots
 
             return tradableSymbolList;
         }
-
-        private bool IsSSLCrossLessThen(Bars bars, int lastSSLCrossAcceptable)
-        {
-            SSLChannel ssl = TradeMultipleInstruments ? _sslList[bars.SymbolName] : _ssl;
-
-            for (int i = 0; i < lastSSLCrossAcceptable; i++)
-            {
-                double SSLUp = ssl.SslUp.Last(i);
-                double PrevSSLUp = ssl.SslUp.Last(i + 1);
-                double SSLDown = ssl.SslDown.Last(i);
-                double PrevSSLDown = ssl.SslDown.Last(i + 1);
-
-                if ((SSLUp < SSLDown && PrevSSLUp > PrevSSLDown) || (SSLUp > SSLDown && PrevSSLUp < PrevSSLDown))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private bool IsMACDCrossLessThen(Bars bars, int lastMACDCrossAcceptable)
-        {
-            MacdCrossOver macdCrossOver = TradeMultipleInstruments ? _MACDCrossOverList[bars.SymbolName] : _MACDCrossOver;
-
-            for (int i = 0; i < lastMACDCrossAcceptable; i++)
-            {
-                double macd = macdCrossOver.MACD.Last(i);
-                double Prevmacd = macdCrossOver.MACD.Last(i + 1);
-                double macdsignal = macdCrossOver.Signal.Last(i);
-                double Prevmacdsignal = macdCrossOver.Signal.Last(i + 1);
-
-                if ((macd < macdsignal && Prevmacd > Prevmacdsignal) || (macd > macdsignal && Prevmacd < Prevmacdsignal))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         private void CheckForTradesToClose(Bars bars, Symbol symbol, string label)
         {
             if (Server.Time.Date == DateTime.Parse("30/04/2020"))
             {
 
             }
-            MacdCrossOver macdCrossOver = TradeMultipleInstruments ? _MACDCrossOverList[bars.SymbolName] : _MACDCrossOver;
-            double macd = Math.Round(macdCrossOver.MACD.Last(1), 4);
-            double Prevmacd = Math.Round(macdCrossOver.MACD.Last(2), 4);
-            double macdsignal = Math.Round(macdCrossOver.Signal.Last(1), 4);
-            double Prevmacdsignal = Math.Round(macdCrossOver.Signal.Last(2), 4);
+            // *****Testcode that I used, left here as an example*****      will not work by just uncommenting as i removed the instanciating in the onstart etc.
 
-            if (macd >= macdsignal && Prevmacd <= Prevmacdsignal)
+            //MacdCrossOver macdCrossOver = TradeMultipleInstruments ? _MACDCrossOverList[bars.SymbolName] : _MACDCrossOver;
+            //double macd = Math.Round(macdCrossOver.MACD.Last(1), 4);
+            //double Prevmacd = Math.Round(macdCrossOver.MACD.Last(2), 4);
+            //double macdsignal = Math.Round(macdCrossOver.Signal.Last(1), 4);
+            //double Prevmacdsignal = Math.Round(macdCrossOver.Signal.Last(2), 4);
+
+            //if (macd >= macdsignal && Prevmacd <= Prevmacdsignal)
+            if (false)
             {
                 if (Positions.FindAll(label, symbol.Name, TradeType.Sell) == null)
                 {
@@ -377,7 +347,8 @@ namespace cAlgo.Robots
                     ClosePosition(position);
                 }
             }
-            if (macd <= macdsignal && Prevmacd >= Prevmacdsignal)
+            //if (macd <= macdsignal && Prevmacd >= Prevmacdsignal)
+            if (false)
             {
                 if (Positions.FindAll(label, symbol.Name, TradeType.Buy) == null)
                 {
@@ -458,8 +429,6 @@ namespace cAlgo.Robots
                 }
             }
 
-            //var risk = 
-
             //Calculate trade amount based on ATR
             double atrSize = Math.Round(atr.Result.Last(_barToCheck) / symbol.PipSize, 0);
             double tradeAmount = Account.Equity * risk / (SlFactor * atrSize * symbol.PipValue);
@@ -495,7 +464,7 @@ namespace cAlgo.Robots
 
         private void CalculateCorrelationTable(Bars bars)
         {
-            // Example code for a real simple basic correlation
+            // ***Example code for a real simple basic correlation***
             //var pSAR = parabolicSARList[bars.SymbolName];
             //if (pSAR.Result.Last() > bars.Last().Close)
             //{
