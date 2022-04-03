@@ -76,5 +76,9 @@
       <Project>{5BAC46AF-A611-401F-8038-C018FEBA2882}</Project>
       <Name>AdxVma</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Indicators\Didi Index\Didi Index\Didi Index.csproj">
+      <Project>{4417D1D3-B1D4-4CFB-9CE0-8927FE3AEAD8}</Project>
+      <Name>Didi Index</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

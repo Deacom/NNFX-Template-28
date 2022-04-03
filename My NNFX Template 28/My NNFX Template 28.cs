@@ -7,9 +7,6 @@ using cAlgo.API;
 using cAlgo.API.Indicators;
 using cAlgo.API.Internals;
 using cAlgo.Indicators;
-using Newtonsoft.Json;
-using TradeLib;
-using TradeLib.Entities;
 
 [assembly: AllowPartiallyTrustedCallers()]
 namespace cAlgo.Robots
@@ -48,11 +45,21 @@ namespace cAlgo.Robots
         public string FilePath { get; set; }
         #endregion
 
+        [Parameter("Short", Group = "Didi", DefaultValue = "3")]
+        public int DidiShort { get; set; }
+        [Parameter("Main", Group = "Didi", DefaultValue = "8")]
+        public int DidiMain { get; set; }
+        [Parameter("Long", Group = "Didi", DefaultValue = "20")]
+        public int DidiLong { get; set; }
+
         //indicator variables for the Template for multi symbols
         private readonly Dictionary<string, AverageTrueRange> AtrList = new Dictionary<string, AverageTrueRange>();
         private readonly Dictionary<string, TradeSymbolInfo> TradeSymbolInfoList = new Dictionary<string, TradeSymbolInfo>();
         private readonly List<TradeSymbolInfo> SymbolsToTradeList = new List<TradeSymbolInfo>();
         private readonly Dictionary<string, int> CorrelationTable = new Dictionary<string, int>();
+
+        private readonly Dictionary<string, DidiIndex> DiDiDictionary = new Dictionary<string, DidiIndex>();
+        private readonly Dictionary<string, VolumeOscillator> VolOcDic = new Dictionary<string, VolumeOscillator>();
 
         //indicator variables for the Template for single symbol
         private string _botName;
@@ -63,9 +70,10 @@ namespace cAlgo.Robots
         private TimeFrame higherTimeframe;
         private int Day { get; set; }
 
-
-
         //indicator variables for the Imported indicators
+        private DidiIndex DidiIndex;
+        private VolumeOscillator VolOc;
+
 
         #region Ctrader EventHandlers
         protected override void OnStart()
@@ -74,26 +82,26 @@ namespace cAlgo.Robots
             _botName = _botName.Substring(_botName.LastIndexOf('.') + 1);
 
             // gets 1 timeframe higher then you use the bot on if you want to use that
-            switch (TimeFrame.Name)
-            {
-                case ("Minute5"):
-                    higherTimeframe = TimeFrame.Minute15;
-                    break;
-                case ("Minute15"):
-                    higherTimeframe = TimeFrame.Hour;
-                    break;
-                case ("Hour"):
-                    higherTimeframe = TimeFrame.Hour4;
-                    break;
-                case ("Hour4"):
-                    higherTimeframe = TimeFrame.Daily;
-                    break;
-                case ("Daily"):
-                    higherTimeframe = TimeFrame.Weekly;
-                    break;
-                default:
-                    throw new Exception("Wrong Timeframe for this bot");
-            }
+            //switch (TimeFrame.Name)
+            //{
+            //    case ("Minute5"):
+            //        higherTimeframe = TimeFrame.Minute15;
+            //        break;
+            //    case ("Minute15"):
+            //        higherTimeframe = TimeFrame.Hour;
+            //        break;
+            //    case ("Hour"):
+            //        higherTimeframe = TimeFrame.Hour4;
+            //        break;
+            //    case ("Hour4"):
+            //        higherTimeframe = TimeFrame.Daily;
+            //        break;
+            //    case ("Daily"):
+            //        higherTimeframe = TimeFrame.Weekly;
+            //        break;
+            //    default:
+            //        throw new Exception("Wrong Timeframe for this bot");
+            //}
 
             // If you trade on a specific time you need to check the current bar (0), but if you trade on the start of a new bar you need to check the previous bar (1)
             _barToCheck = TradeOnTime ? 0 : 1;
@@ -142,10 +150,12 @@ namespace cAlgo.Robots
                         bars.Tick += OnBarTick;
                     }
 
-                    AtrList.Add(symbol.Key, Indicators.AverageTrueRange(bars, 14, MovingAverageType.Exponential));
+                    AtrList.Add(symbol.Key, Indicators.AverageTrueRange(bars, 24, MovingAverageType.Exponential));
 
                     //Load here the specific indicators for this bot for multiple Instruments
 
+                    DiDiDictionary.Add(symbol.Key, Indicators.GetIndicator<DidiIndex>(bars, bars.ClosePrices, DidiShort, bars.ClosePrices, DidiMain, bars.ClosePrices, DidiLong));
+                    VolOcDic.Add(symbol.Key, Indicators.VolumeOscillator(bars, 9, 21));
                 }
             }
             else
@@ -159,11 +169,13 @@ namespace cAlgo.Robots
                 {
                     Bars.Tick += OnBarTick;
                 }
-
-                _atr = Indicators.AverageTrueRange(14, MovingAverageType.Exponential);
+                AtrList.Add(Bars.SymbolName, Indicators.AverageTrueRange(24, MovingAverageType.Exponential));
+                _atr = Indicators.AverageTrueRange(24, MovingAverageType.Exponential);
 
                 //Load here the specific indicators for this bot for a single instrument
 
+                DidiIndex = Indicators.GetIndicator<DidiIndex>(Bars.ClosePrices, DidiShort, Bars.ClosePrices, DidiMain, Bars.ClosePrices, DidiLong);
+                VolOc = Indicators.VolumeOscillator(9, 21);
             }
 
 
@@ -184,11 +196,13 @@ namespace cAlgo.Robots
                     if (position.TradeType == TradeType.Buy)
                     {
                         ModifyPosition(position, position.EntryPrice, null, true);
+                        position.ModifyStopLossPips(AtrList[position.SymbolName].Result.LastValue);
                     }
 
                     if (position.TradeType == TradeType.Sell)
                     {
                         ModifyPosition(position, position.EntryPrice, null, true);
+                        position.ModifyStopLossPips(AtrList[position.SymbolName].Result.LastValue);
                     }
                 }
             }
@@ -361,11 +375,10 @@ namespace cAlgo.Robots
             }
 
         }
-
         private ExtendedTradeType CheckForTradesToOpen(Bars bars, Symbol symbol, AverageTrueRange atr)
         {
             // add a reason not to trade instead of false
-            if (false)
+            if (Server.Time.DayOfWeek == DayOfWeek.Monday || Server.Time.DayOfWeek == DayOfWeek.Friday)
             {
                 return ExtendedTradeType.Nothing;
             }
@@ -375,7 +388,7 @@ namespace cAlgo.Robots
 
             if (barSize > atrSize)
             {
-                return ExtendedTradeType.Nothing;
+                //return ExtendedTradeType.Nothing;
             }
 
             // *****Testcode that I used, left here as an example*****      will not work by just uncommenting as i removed the instanciating in the onstart etc.
@@ -393,21 +406,25 @@ namespace cAlgo.Robots
             //string currency1 = bars.SymbolName.Substring(0, 3);
             //string currency2 = bars.SymbolName.Substring(3, 3);
 
+            DidiIndex didi = TradeMultipleInstruments ? DiDiDictionary[bars.SymbolName] : DidiIndex;
+            VolumeOscillator voloc = TradeMultipleInstruments ? VolOcDic[bars.SymbolName] : VolOc;
+
             //if (macdValue > buffedSignal && SSLUp > SSLDown && cv.Result.Last() > 0 && CorrelationTable[currency1] > CorrelationTable[currency2] && macd.Histogram.Last(1) < macd.Histogram.Last(2))
-            if (false)
+            //if (false)
+            if (didi.LongResult.LastValue < 1 && didi.LongResult.Last(2) > 1 && voloc.Result.LastValue > 0 && voloc.Result.Last(1) > 0)
             {
                 return ExtendedTradeType.Buy;
             }
 
             //else if (macdValue < buffedSignal && SSLUp < SSLDown && cv.Result.Last() > 0 && CorrelationTable[currency1] < CorrelationTable[currency2] && macd.Histogram.Last(1) > macd.Histogram.Last(2))
-            if (false)
+            //if (false)
+            if (didi.LongResult.LastValue > 1 && didi.LongResult.Last(2) < 1 && voloc.Result.LastValue > 0 && voloc.Result.Last(1) > 0)
             {
                 return ExtendedTradeType.Sell;
             }
 
             return ExtendedTradeType.Nothing;
         }
-
         //Function for opening a new trade
         private void Open(TradeType tradeType, Symbol symbol, AverageTrueRange atr, string label, double risk)
         {
@@ -432,10 +449,11 @@ namespace cAlgo.Robots
             //Calculate trade amount based on ATR
             double atrSize = Math.Round(atr.Result.Last(_barToCheck) / symbol.PipSize, 0);
             double tradeAmount = Account.Equity * risk / (SlFactor * atrSize * symbol.PipValue);
-            tradeAmount = symbol.NormalizeVolumeInUnits(tradeAmount / 2, RoundingMode.Down);
+            double tradeAmount1 = symbol.NormalizeVolumeInUnits(tradeAmount * 0.7, RoundingMode.Down);
+            double tradeAmount2 = symbol.NormalizeVolumeInUnits(tradeAmount * 0.3, RoundingMode.Down);
 
-            ExecuteMarketOrder(tradeType, symbol.Name, tradeAmount, label, SlFactor * atrSize, TpFactor * atrSize);
-            ExecuteMarketOrder(tradeType, symbol.Name, tradeAmount, label, SlFactor * atrSize, null);
+            ExecuteMarketOrder(tradeType, symbol.Name, tradeAmount1, label, SlFactor * atrSize, TpFactor * atrSize);
+            ExecuteMarketOrder(tradeType, symbol.Name, tradeAmount2, label, SlFactor * atrSize, null);
 
             if (_hadABigBar)
             {
@@ -443,7 +461,6 @@ namespace cAlgo.Robots
                 _hadABigBar = false;
             }
         }
-
         //Function for closing trades
         private void Close(TradeType tradeType, Symbol symbol, string label)
         {
